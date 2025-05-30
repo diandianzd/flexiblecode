@@ -1,0 +1,60 @@
+version: '3.1'
+
+services:
+  api:
+    platform: linux/amd64
+    build: 
+      context: ../api
+      dockerfile: Dockerfile
+    image: xlizz/flexible-api:latest
+    container_name: flexible-api
+    restart: always
+
+    volumes:
+      - ../api/docker/entrypoint.sh:/data/entrypoint.sh
+      - ../api/docker/settings.xml:/usr/share/maven/conf/settings.xml
+      - ../api:/workspace
+      - ./volumes/.m2/repository:/root/.m2/repository
+
+
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-flexible123456}
+      - POSTGRES_DB=postgres
+
+    networks:
+      - flexible_net
+
+    ports:
+      - "8083:8080"
+
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: flexible-db
+    restart: always
+    command: ["postgres", "-c", "max_connections=5000", "-c", "shared_buffers=8GB", "-c", "work_mem=32MB"]
+
+
+    environment:
+      # 这里的配置只有首次运行生效。修改后，重启镜像是不会生效的。需要把持久化数据删除再重启，才有效果
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-flexible123456}
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./volumes/postgresql/data:/var/lib/postgresql/data
+
+    ports:
+      # 生产环境建议不要暴露
+      - ${POSTGRES_PORT}:5432
+
+    networks:
+      - flexible_net
+
+networks:
+  flexible_net:
+    name: flexible_net

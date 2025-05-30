@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flexible.mapper.DepartmentsMapper">
+  <resultMap id="UserListResultMap" type="com.flexible.entity.response.role.DepartmentUserRes">
+      <id column="id" jdbcType="BIGINT" property="id"/>
+      <result column="name" jdbcType="VARCHAR" property="name"/>
+  </resultMap>
+
+  <select id="getUserList" resultMap="UserListResultMap">
+      SELECT a.id, b.name as userName,a.user_id,a.department_id
+      FROM rel_department_user a 
+      LEFT JOIN users b on a.user_id = b.id
+      WHERE a.department_id = #{departmentId,jdbcType=BIGINT}
+      <!-- <if test="name != null and name != ''">
+          and b.name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+      </if> -->
+      ORDER BY b.id desc
+      LIMIT #{pageSize} OFFSET ${pageSize * (page - 1)}
+
+  </select>
+
+  <select id="getUserListCount" resultType="java.lang.Integer">
+      SELECT count(1)
+      FROM rel_department_user a 
+      LEFT JOIN users b on a.user_id = b.id
+      WHERE a.department_id = #{departmentId,jdbcType=BIGINT}
+      <!-- <if test="name != null and name != ''">
+          and b.name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+      </if> -->
+  </select>
+</mapper>

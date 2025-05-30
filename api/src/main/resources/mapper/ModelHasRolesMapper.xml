@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flexible.mapper.ModelHasRolesMapper">
+    <resultMap id="listResultMap" type="com.flexible.entity.response.role.ModelHasRoleRes">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="modelName" jdbcType="VARCHAR" property="modelName"/>
+    </resultMap>
+
+    <select id="getModelList" resultMap="listResultMap">
+        SELECT b.name as modelName,a.role_id,a.model_id,a.model_type
+        FROM model_has_roles a
+        <if test="modelType == 'user' ">
+            LEFT JOIN users b on a.model_id = b.id
+        </if>
+        <if test="modelType == 'department' ">
+            LEFT JOIN departments b on a.model_id = b.id
+        </if>
+        WHERE a.role_id = #{roleId,jdbcType=BIGINT}
+            AND a.model_type = #{modelType,jdbcType=VARCHAR}
+
+        ORDER BY b.id desc
+        LIMIT #{pageSize} OFFSET ${pageSize * (page - 1)}
+
+    </select>
+
+    <select id="getModelListCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM model_has_roles a
+        <if test="modelType == 'user' ">
+            LEFT JOIN users b on a.model_id = b.id
+        </if>
+        <if test="modelType == 'department' ">
+            LEFT JOIN departments b on a.model_id = b.id
+        </if>
+        WHERE a.role_id = #{roleId,jdbcType=BIGINT}
+            AND a.model_type = #{modelType,jdbcType=VARCHAR}
+        <!-- <if test="name != null and name != ''">
+            and b.name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+        </if> -->
+    </select>
+</mapper>
